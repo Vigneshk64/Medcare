@@ -155,11 +155,7 @@ npm run build
 npm run start
 ```
 
-## 📝 License
-
-MIT License - feel free to use this project for educational and commercial purposes.
-
-## 👨‍💻 Author
+## ‍💻 Author
 
 **Vignesh Das** - Healthcare Innovation Project
 
