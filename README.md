@@ -2,6 +2,8 @@
 
 A **modern, role-based healthcare management system** for managing medicine inventory, doctor requests, and delivery tracking. Built with Next.js, React, Tailwind CSS, and Firebase for real-time data synchronization.
 
+**🚀 [Live Demo](https://medcare-nine-theta.vercel.app/)** - Try it now!
+
 ## 🎯 Features
 
 ### 👨‍⚕️ **Doctor Portal**
@@ -60,7 +62,11 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the app.
+Open [http://localhost:3000](http://localhost:3000) to view the app locally.
+
+### Live Deployment
+
+Visit the live app: **[medcare-nine-theta.vercel.app](https://medcare-nine-theta.vercel.app/)**
 
 ### Environment Setup
 
