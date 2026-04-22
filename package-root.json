@@ -1,0 +1,17 @@
+{
+  "name": "medcare-monorepo",
+  "version": "1.0.0",
+  "description": "MedCare - Healthcare Medicine Management Platform",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @medcare/frontend\" \"npm run dev -w @medcare/backend\"",
+    "build": "npm run build -w @medcare/frontend && npm run build -w @medcare/backend",
+    "install": "npm install && npm install -w @medcare/frontend && npm install -w @medcare/backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
