@@ -6,7 +6,6 @@ import {
   collection,
   query,
   where,
-  getDocs,
   updateDoc,
   doc,
   onSnapshot,
@@ -14,16 +13,17 @@ import {
 import { signOut } from "firebase/auth";
 import { db, auth } from "../../lib/firebase";
 import { useAuth } from "../context/AuthContext";
-import { RoleGuard } from "../components/RoleGuard";
+import DashboardLayout from "../components/DashboardLayout";
+import GlassCard from "../components/GlassCard";
+import StatusBadge from "../components/StatusBadge";
 
 function DeliveryDashboardContent() {
   const { user } = useAuth();
   const router = useRouter();
-  const [deliveries, setDeliveries] = useState([]);
+  const [deliveries, setDeliveries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [todayDate] = useState(new Date().toISOString().split("T")[0]);
 
-  // Fetch today's deliveries assigned to this user
   useEffect(() => {
     if (!user) return;
 
@@ -45,7 +45,7 @@ function DeliveryDashboardContent() {
     return () => unsubscribe();
   }, [user, todayDate]);
 
-  const handleStatusUpdate = async (deliveryId, newStatus) => {
+  const handleStatusUpdate = async (deliveryId: string, newStatus: string) => {
     try {
       await updateDoc(doc(db, "deliveries", deliveryId), {
         status: newStatus,
@@ -55,8 +55,8 @@ function DeliveryDashboardContent() {
     }
   };
 
-  const handleCall = (phone) => {
-    window.location.href = `tel:${phone}`;
+  const handleCall = (phone: string) => {
+    window.open(`tel:${phone}`, "_self");
   };
 
   const handleSignOut = async () => {
@@ -69,111 +69,108 @@ function DeliveryDashboardContent() {
   ).length;
   const totalCount = deliveries.length;
 
+  const sidebarItems = [
+    { id: 'today', label: 'Today\'s Deliveries', icon: '📦' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Delivery Dashboard
-            </h1>
-            {user && (
-              <p className="text-gray-600 mt-1">
-                {deliveredCount} of {totalCount} delivered today
-              </p>
-            )}
+    <DashboardLayout
+      role="delivery"
+      title={`Delivery Dashboard - ${deliveredCount}/${totalCount} completed`}
+      sidebarItems={sidebarItems}
+      activeTab="today"
+      onTabChange={() => {}}
+      onSignOut={handleSignOut}
+    >
+      {loading && (
+        <div className="flex justify-center items-center py-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p className="text-gray-400 text-lg">Loading deliveries...</p>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2 rounded-lg"
-          >
-            Sign Out
-          </button>
         </div>
-      </header>
+      )}
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        {loading && (
-          <div className="text-center text-gray-600 text-lg py-8">
-            Loading deliveries...
-          </div>
-        )}
+      {!loading && deliveries.length === 0 && (
+        <div className="text-center py-16">
+          <div className="text-6xl mb-4">✅</div>
+          <p className="text-gray-300 text-lg">No deliveries for today. Great job!</p>
+        </div>
+      )}
 
-        {!loading && deliveries.length === 0 && (
-          <div className="text-center text-gray-600 text-lg py-12">
-            <div className="text-5xl mb-4">✅</div>
-            <p>No deliveries for today. Great job!</p>
-          </div>
-        )}
+      {deliveries.map((delivery) => (
+        <GlassCard key={delivery.id} className="mb-6">
+          {/* Customer Name - Large for mobile */}
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">
+            {delivery.customerName}
+          </h2>
 
-        {deliveries.map((delivery) => (
-          <div
-            key={delivery.id}
-            className="bg-white rounded-xl shadow-md p-6 mb-6 border-l-4 border-blue-600"
-          >
-            {/* Customer Name - Large */}
-            <h2 className="text-4xl font-bold text-gray-900 mb-3">
-              {delivery.customerName}
-            </h2>
+          {/* Address */}
+          <p className="text-xl sm:text-2xl text-gray-300 mb-6">
+            {delivery.address}
+          </p>
 
-            {/* Address */}
-            <p className="text-2xl text-gray-700 mb-6">{delivery.address}</p>
-
-            {/* Status Badge */}
-            <div className="mb-6">
-              <span
-                className={`text-xl font-bold px-4 py-2 rounded-lg inline-block ${
+          {/* Status Badge */}
+          <div className="mb-6">
+            <div className="inline-block">
+              <StatusBadge
+                status={
                   delivery.status === "Delivered"
-                    ? "bg-green-100 text-green-800"
-                    : delivery.status === "Pending"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-red-100 text-red-800"
-                }`}
-              >
-                {delivery.status}
-              </span>
-            </div>
-
-            {/* Action Buttons - Large */}
-            <div className="flex flex-col gap-4 sm:flex-row">
-              {delivery.status !== "Delivered" && (
-                <button
-                  onClick={() => handleStatusUpdate(delivery.id, "Delivered")}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 rounded-lg transition"
-                >
-                  ✓ Delivered
-                </button>
-              )}
-
-              {delivery.status !== "Unavailable" && (
-                <button
-                  onClick={() => handleStatusUpdate(delivery.id, "Unavailable")}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold text-xl py-4 rounded-lg transition"
-                >
-                  ✗ Unavailable
-                </button>
-              )}
-
-              <button
-                onClick={() => handleCall(delivery.phone)}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl py-4 rounded-lg transition"
-              >
-                📞 Call
-              </button>
+                    ? "completed"
+                    : delivery.status === "Unavailable"
+                      ? "danger"
+                      : "pending"
+                }
+              />
             </div>
           </div>
-        ))}
-      </main>
-    </div>
+
+          {/* Action Buttons - Large for mobile */}
+          <div className="flex flex-col gap-3 sm:gap-4">
+            {delivery.status !== "Delivered" && (
+              <button
+                onClick={() => handleStatusUpdate(delivery.id, "Delivered")}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-lg sm:text-xl py-4 sm:py-5 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+              >
+                ✓ Delivered
+              </button>
+            )}
+
+            {delivery.status !== "Unavailable" && (
+              <button
+                onClick={() => handleStatusUpdate(delivery.id, "Unavailable")}
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-lg sm:text-xl py-4 sm:py-5 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+              >
+                ✗ Unavailable
+              </button>
+            )}
+
+            <button
+              onClick={() => handleCall(delivery.phone)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg sm:text-xl py-4 sm:py-5 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+            >
+              📞 Call
+            </button>
+          </div>
+
+          {/* Additional Info */}
+          <div className="mt-6 pt-6 border-t border-gray-700 space-y-2">
+            <p className="text-gray-400">
+              <span className="font-semibold">Phone:</span> {delivery.phone}
+            </p>
+            <p className="text-gray-400">
+              <span className="font-semibold">Medicine:</span> {delivery.medicine}
+            </p>
+            <p className="text-gray-400">
+              <span className="font-semibold">Dosage:</span> {delivery.dosage}
+            </p>
+          </div>
+        </GlassCard>
+      ))}
+    </DashboardLayout>
   );
 }
 
 export default function DeliveryDashboard() {
-  return (
-    <RoleGuard requiredRole="delivery">
-      <DeliveryDashboardContent />
-    </RoleGuard>
-  );
+  return <DeliveryDashboardContent />;
 }

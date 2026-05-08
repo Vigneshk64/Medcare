@@ -1,0 +1,78 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read and write their own user document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && 
+        request.auth.token.role in ['admin', 'doctor', 'pharmacist'];
+    }
+    
+    // Users collection - admins can read all, others can read their own
+    match /users/{userId} {
+      allow read: if request.auth != null && (
+        request.auth.uid == userId || 
+        request.auth.token.role in ['admin']
+      );
+      allow write: if request.auth != null && (
+        request.auth.uid == userId || 
+        request.auth.token.role in ['admin']
+      );
+    }
+    
+    // Prescriptions collection
+    match /prescriptions/{prescriptionId} {
+      allow read: if request.auth != null && (
+        resource.data.patientId == request.auth.uid ||
+        resource.data.doctorId == request.auth.uid ||
+        request.auth.token.role in ['admin', 'pharmacist']
+      );
+      allow write: if request.auth != null && (
+        request.auth.token.role in ['admin', 'doctor'] ||
+        (request.auth.token.role == 'doctor' && resource.data.doctorId == request.auth.uid)
+      );
+      allow create: if request.auth != null && request.auth.token.role in ['admin', 'doctor'];
+    }
+    
+    // Orders collection
+    match /orders/{orderId} {
+      allow read: if request.auth != null && (
+        resource.data.patientId == request.auth.uid ||
+        request.auth.token.role in ['admin', 'pharmacist', 'doctor']
+      );
+      allow write: if request.auth != null && (
+        request.auth.token.role in ['admin', 'pharmacist'] ||
+        (request.auth.token.role == 'pharmacist' && 
+         ('status' in request.resource.data || 'status' in resource.data))
+      );
+      allow create: if request.auth != null && request.auth.token.role in ['admin', 'patient', 'doctor'];
+    }
+    
+    // Medicines collection
+    match /medicines/{medicineId} {
+      allow read: if request.auth != null; // All authenticated users can read medicines
+      allow write: if request.auth != null && request.auth.token.role in ['admin', 'pharmacist'];
+      allow create: if request.auth != null && request.auth.token.role in ['admin'];
+    }
+    
+    // Appointments collection (if exists)
+    match /appointments/{appointmentId} {
+      allow read: if request.auth != null && (
+        resource.data.patientId == request.auth.uid ||
+        resource.data.doctorId == request.auth.uid ||
+        request.auth.token.role in ['admin']
+      );
+      allow write: if request.auth != null && (
+        request.auth.token.role in ['admin', 'doctor'] ||
+        (request.auth.token.role == 'doctor' && resource.data.doctorId == request.auth.uid) ||
+        (request.auth.token.role == 'patient' && resource.data.patientId == request.auth.uid)
+      );
+    }
+    
+    // Deny all other reads/writes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

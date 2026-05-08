@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { collection, getDocs, addDoc, query, where, onSnapshot } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { db, auth } from "../../lib/firebase";
@@ -61,9 +62,8 @@ const styles = `
 function DoctorDashboardContent() {
   const { user } = useAuth();
   const router = useRouter();
-  const [medicines, setMedicines] = useState([]);
+    const [medicines, setMedicines] = useState([]);
   const [search, setSearch] = useState("");
-  const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("search");
   const [myRequests, setMyRequests] = useState([]);
@@ -112,23 +112,20 @@ function DoctorDashboardContent() {
     return () => unsubscribe();
   }, [user]);
 
-  // Fuzzy search
-  useEffect(() => {
+    // Fuzzy search - using useMemo to avoid setState in effect
+  const results = useMemo(() => {
     if (!search.trim()) {
-      setResults([]);
-      return;
+      return [];
     }
 
     const query = search.toLowerCase();
-    const filtered = medicines.filter((med) => {
+    return medicines.filter((med) => {
       const nameMatch = med.name.toLowerCase().includes(query);
       const aliasMatch = med.aliases?.some((alias) =>
         alias.toLowerCase().includes(query)
       );
       return nameMatch || aliasMatch;
     });
-
-    setResults(filtered);
   }, [search, medicines]);
 
   const addMedicineToRequest = () => {
@@ -285,30 +282,46 @@ function DoctorDashboardContent() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {results.map((medicine, idx) => (
                     <div
                       key={medicine.id}
-                      className="medicine-card bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-md animate-fade-in-up"
+                      className="medicine-card bg-white rounded-2xl border-2 border-gray-200 overflow-hidden shadow-md animate-fade-in-up"
                       style={{ animationDelay: `${0.1 * idx}s` }}
                     >
-                      <div className="flex justify-between items-start mb-4">
-                        <h3 className="text-2xl font-black text-gray-900 flex-1">{medicine.name}</h3>
-                        <span className="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full">Available</span>
-                      </div>
-                      
-                      {medicine.aliases && medicine.aliases.length > 0 && (
-                        <p className="text-gray-600 text-sm mb-4">
-                          Also known as: <span className="font-semibold">{medicine.aliases.join(", ")}</span>
-                        </p>
-                      )}
-
-                      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border-l-4 border-blue-600">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 font-semibold">Available Quantity:</span>
-                          <span className="text-3xl font-black text-blue-600">{medicine.quantity}</span>
+                                            {/* Medicine Image */}
+                      <div className="relative h-40 bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden">
+                        <Image
+                          src={medicine.image || "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop"}
+                          alt={medicine.name}
+                          fill
+                          className="object-cover transition-transform duration-300 hover:scale-110"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=400&h=400&fit=crop";
+                          }}
+                          unoptimized
+                        />
+                        <div className="absolute top-2 right-2">
+                          <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Available</span>
                         </div>
-                        <p className="text-gray-500 text-sm mt-2">{medicine.unit || "units"}</p>
+                      </div>
+
+                      <div className="p-6">
+                        <h3 className="text-2xl font-black text-gray-900 mb-3">{medicine.name}</h3>
+                        
+                        {medicine.aliases && medicine.aliases.length > 0 && (
+                          <p className="text-gray-600 text-sm mb-4">
+                            Also known as: <span className="font-semibold">{medicine.aliases.join(", ")}</span>
+                          </p>
+                        )}
+
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border-l-4 border-blue-600">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600 font-semibold">Available Quantity:</span>
+                            <span className="text-3xl font-black text-blue-600">{medicine.quantity}</span>
+                          </div>
+                          <p className="text-gray-500 text-sm mt-2">{medicine.unit || "units"}</p>
+                        </div>
                       </div>
                     </div>
                   ))}

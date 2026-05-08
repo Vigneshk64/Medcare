@@ -850,10 +850,10 @@ function AdminDashboardContent() {
                 </p>
               </div>
 
-              {/* Today's Delivery Progress */}
+              {/* TODAY&apos;S Delivery Progress */}
               <div className="bg-white rounded-lg shadow-md p-8">
                 <p className="text-gray-600 text-sm font-semibold mb-2">
-                  TODAY'S PROGRESS
+                  TODAY&apos;S PROGRESS
                 </p>
                 <p className="text-5xl font-bold text-green-600">
                   {todayDeliveredCount}/{deliveries.length}

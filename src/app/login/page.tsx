@@ -67,9 +67,10 @@ export default function LoginPage() {
   };
 
   const redirectToDashboard = (role) => {
-    if (role === "admin") router.push("/admin");
-    else if (role === "doctor") router.push("/doctor");
-    else if (role === "delivery") router.push("/delivery");
+    if (role === "admin") router.push("/dashboard/admin");
+    else if (role === "doctor") router.push("/dashboard/doctor");
+    else if (role === "pharmacist") router.push("/dashboard/pharmacist");
+    else if (role === "patient") router.push("/dashboard/patient");
     else router.push("/");
   };
 
@@ -97,22 +98,28 @@ export default function LoginPage() {
           {/* Role Selection Buttons */}
           <div className="space-y-4">
             <button
+              onClick={() => handleRoleSelect("patient")}
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4 px-6 rounded-lg text-lg transition"
+            >
+              👤 Patient
+            </button>
+            <button
               onClick={() => handleRoleSelect("doctor")}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-lg transition"
             >
               👨‍⚕️ Doctor
             </button>
             <button
-              onClick={() => handleRoleSelect("delivery")}
+              onClick={() => handleRoleSelect("pharmacist")}
               className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg text-lg transition"
             >
-              🚚 Delivery Boy (Arjun)
+              � Pharmacist
             </button>
             <button
               onClick={() => handleRoleSelect("admin")}
               className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-6 rounded-lg text-lg transition"
             >
-              👔 Admin (Rajan)
+              👔 Admin
             </button>
           </div>
 

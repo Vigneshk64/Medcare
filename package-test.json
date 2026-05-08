@@ -1,0 +1,73 @@
+{
+  "name": "medcare-test-suite",
+  "version": "1.0.0",
+  "description": "End-to-end test suite for MedCare healthcare platform",
+  "scripts": {
+    "test": "node test-automation.js",
+    "test:functional": "node -e \"require('./test-automation.js').runFunctionalTests()\"",
+    "test:ai": "node -e \"require('./test-automation.js').runAIFeatureTests()\"",
+    "test:workflow": "node -e \"require('./test-automation.js').runOrderWorkflowTests()\"",
+    "test:security": "node -e \"require('./test-automation.js').runSecurityTests()\"",
+    "test:performance": "node -e \"require('./test-automation.js').runPerformanceTests()\"",
+    "test:report": "node -e \"require('./test-automation.js').generateTestReport()\""
+  },
+  "devDependencies": {
+    "puppeteer": "^21.0.0",
+    "jest": "^29.0.0",
+    "cypress": "^13.0.0",
+    "playwright": "^1.40.0"
+  },
+  "testConfig": {
+    "baseUrl": "http://localhost:3001",
+    "timeout": 30000,
+    "retries": 3,
+    "parallel": false,
+    "categories": [
+      "FUNCTIONAL",
+      "AI_FEATURES", 
+      "ORDER_WORKFLOW",
+      "EDGE_CASES",
+      "API_FAILURES",
+      "UI_COMPONENTS",
+      "PERFORMANCE",
+      "SECURITY",
+      "RECOVERY"
+    ]
+  },
+  "environments": {
+    "development": {
+      "firebase": {
+        "projectId": "medcare-88ab2",
+        "emulator": {
+          "host": "localhost",
+          "port": 8080
+        }
+      },
+      "ai": {
+        "provider": "openrouter",
+        "model": "mini-max/m2.5",
+        "mock": false
+      }
+    },
+    "staging": {
+      "firebase": {
+        "projectId": "medcare-staging"
+      },
+      "ai": {
+        "provider": "openrouter",
+        "model": "mini-max/m2.5",
+        "mock": true
+      }
+    },
+    "production": {
+      "firebase": {
+        "projectId": "medcare-prod"
+      },
+      "ai": {
+        "provider": "openrouter",
+        "model": "mini-max/m2.5",
+        "mock": false
+      }
+    }
+  }
+}
