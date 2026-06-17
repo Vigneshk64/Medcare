@@ -5,6 +5,7 @@ A **modern, role-based healthcare management system** for managing medicine inve
 **🚀 [Live Demo](https://medcare-nine-theta.vercel.app/)** - Try it now!
 
 ## 🎯 Features
+![Uploading image.png…]()
 
 ### 👨‍⚕️ **Doctor Portal**
 - 🔍 **Search Medicines** - Real-time medicine availability lookup with fuzzy search
